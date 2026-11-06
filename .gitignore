@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+.tsbuildinfo
+
+# SQLite data files (keep .gitkeep so folder exists in git)
+backend/data/*
+!backend/data/.gitkeep
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
