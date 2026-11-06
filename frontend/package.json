@@ -1,0 +1,8 @@
+{
+    "name": "@health-tracker/frontend",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "@health-tracker/shared": "*"
+    }
+}

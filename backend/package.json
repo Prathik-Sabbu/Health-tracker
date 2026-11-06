@@ -1,0 +1,9 @@
+{
+    "name": "@health-tracker/backend",
+    "version": "1.0.0",
+    "private": true,
+    "main": "./src/server.ts",
+    "dependencies": {
+        "@health-tracker/shared": "*"
+    }
+}
