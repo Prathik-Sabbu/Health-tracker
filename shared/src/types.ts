@@ -14,6 +14,7 @@ export interface Profile {
     currentWeight: number;
     calorieTarget: number;        // daily kcal
     stepTarget: number;           // daily steps
+    sleepTargetHours?: number;    // target sleep hours (default 8)
     cutStartDate: string;         // ISO string: YYYY-MM-DD
     cutTargetDate: string;        // ISO string: YYYY-MM-DD
     mode: GoalMode;
@@ -212,16 +213,31 @@ export interface SleepData {
     coreMinutes: number;
     awakeMinutes: number;
     efficiencyPercent?: number;   // (totalAsleep / timeInBed) * 100
+    sleepStart?: string;          // Bedtime / sleep start timestamp or formatted string
+    sleepEnd?: string;            // Wake-up timestamp or formatted string
     intervals?: SleepInterval[];  // Detailed timeline for the interactive hypnogram graph
 }
 
 export interface DailyHealthMetrics {
-    date: string;                 // YYYY-MM-DD
-    steps: number;
-    sleep: SleepData;
-    restingHeartRate: number;
-    hrv?: number;                 // SDNN in ms
-    weight?: number;              // Morning scale reading (lbs)
+  date: string;                 // YYYY-MM-DD
+  steps?: number;
+  sleep?: SleepData;
+  sleepStart?: string;          // Sleep start time
+  sleepEnd?: string;            // Sleep end time
+  restingHeartRate?: number;    // bpm
+  hrv?: number;                 // ms (SDNN)
+  respiratoryRate?: number;     // breaths/min
+  bloodOxygen?: number;         // percentage (e.g. 98)
+  weightLbs?: number;           // Morning scale reading (lbs)
+  bodyFatPct?: number;          // percentage (e.g. 15.2)
+  leanBodyMassLbs?: number;     // lean body mass (lbs)
+  activeCalories?: number;      // kcal burned
+  exerciseMinutes?: number;     // Apple Watch exercise ring minutes
+  standHours?: number;          // Apple Watch stand ring hours (hours with >= 1 min standing)
+  standHourly?: number[];       // Hourly standing values throughout the day
+  flightsClimbed?: number;      // flights of stairs climbed
+  distanceMiles?: number;       // walking/running distance in miles
+  source?: string;              // default: 'apple-watch'
 }
 
 export type ReadinessStatus = 'optimal' | 'moderate' | 'low';
