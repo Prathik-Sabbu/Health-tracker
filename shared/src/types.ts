@@ -240,15 +240,42 @@ export interface DailyHealthMetrics {
   source?: string;              // default: 'apple-watch'
 }
 
-export type ReadinessStatus = 'optimal' | 'moderate' | 'low';
+export type ReadinessStatus = 'optimal' | 'moderate' | 'low' | 'calibrating';
+
+export type ProposalKind = 'steps' | 'calories' | 'sleep' | 'note';
+
+export interface Proposal {
+    id: string;               // lets the app remember "dismissed today"
+    kind: ProposalKind;
+    delta?: number;           // steps or kcal, negative = reduce
+    reason: string;
+}
+
+export interface AdvisoryContext {
+    stepGoal: number;
+    stepFloor: number;        // from Settings, never propose below this
+    kcalPerStep: number;      // from your own history; fallback about 0.045
+    calorieTarget: number;
+    calorieFloor: number;     // from Settings
+    hourOfDay: number;
+    lowDaysInRow: number;     // counting today
+    calorieStrategy: 'hold-cut' | 'recovery-first';
+}
+
+export interface Component {
+    key: 'sleep' | 'hrv' | 'rhr' | 'load';
+    score: number;
+    weight: number;
+}
 
 export interface ReadinessResult {
-    score: number;                // 0 to 100
+    score?: number;               // 0 to 100 (undefined when calibrating)
     status: ReadinessStatus;
-    sleepScore: number;           // 0 to 100
-    rhrScore: number;             // 0 to 100
-    hrvScore: number;             // 0 to 100
-    loadScore: number;            // 0 to 100
+    sleepScore?: number;          // 0 to 100
+    rhrScore?: number;            // 0 to 100
+    hrvScore?: number;            // 0 to 100
+    loadScore?: number;           // 0 to 100
+    proposals: Proposal[];
     suggestedStepReduction?: number;
     suggestedCalorieAdjustment?: number;
     advisoryNote: string;

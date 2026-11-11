@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import { getHealthMetrics, getHealthMetricsRange } from './db';
+import { getHealthMetrics, getHealthMetricsRange, getProfile } from './db';
 import { ingestRoutes } from './ingest';
 import { calculateReadiness } from '@health-tracker/shared';
 
@@ -49,14 +49,15 @@ app.get<{ Params: { date: string } }>('/api/health/:date/readiness', async (requ
         return reply.status(404).send({ error: `No metrics found for date: ${date}` });
     }
 
-    // Fetch prior 30 days for rolling baseline
+    // Fetch prior 28 days for rolling baseline
     const targetDate = new Date(date);
     const startDate = new Date(targetDate);
-    startDate.setDate(startDate.getDate() - 30);
+    startDate.setDate(startDate.getDate() - 28);
     const startStr = startDate.toISOString().slice(0, 10);
 
     const history = getHealthMetricsRange(startStr, date).filter(m => m.date < date);
-    const readiness = calculateReadiness(today, history);
+    const profile = getProfile() ?? undefined;
+    const readiness = calculateReadiness(today, history, profile);
 
     return readiness;
 });

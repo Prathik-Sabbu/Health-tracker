@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import type { DailyHealthMetrics } from '@health-tracker/shared';
+import type { DailyHealthMetrics, Profile } from '@health-tracker/shared';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -206,4 +206,27 @@ export function getHealthMetricsRange(startDate: string, endDate: string): Daily
   `).all(startDate, endDate);
 
     return rows.map(rowToMetric);
+}
+
+export function getProfile(): Profile | null {
+    const row: any = db.prepare('SELECT * FROM profile WHERE id = 1').get();
+    if (!row) return null;
+    return {
+        id: '1',
+        name: row.name,
+        startWeight: row.start_weight,
+        targetWeight: row.target_weight,
+        currentWeight: row.current_weight,
+        calorieTarget: row.calorie_target,
+        stepTarget: row.step_target,
+        sleepTargetHours: 8,
+        cutStartDate: row.cut_start_date ?? '',
+        cutTargetDate: row.cut_target_date ?? '',
+        mode: row.mode ?? 'cut',
+        squatPR: row.squat_pr ?? 0,
+        benchPR: row.bench_pr ?? 0,
+        deadliftPR: row.deadlift_pr ?? 0,
+        dietaryPreferences: JSON.parse(row.dietary_preferences || '[]'),
+        allergies: JSON.parse(row.allergies || '[]'),
+    };
 }

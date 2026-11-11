@@ -52,10 +52,14 @@ console.log(`Body:         Weight: ${latest.weightLbs ?? '-'} lbs | Body Fat: ${
 const history = rows.slice(0, rows.length - 1);
 const readiness = calculateReadiness(latest, history);
 console.log('─'.repeat(50));
-console.log(`🎯 Readiness:    ${readiness.score}/100 (${readiness.status.toUpperCase()})`);
-console.log(`   ├─ Sleep:     ${readiness.sleepScore}/100`);
-console.log(`   ├─ HRV:       ${readiness.hrvScore}/100`);
-console.log(`   ├─ RHR:       ${readiness.rhrScore}/100`);
-console.log(`   ├─ Load:      ${readiness.loadScore}/100`);
+const scoreStr = readiness.score !== undefined ? `${readiness.score}/100` : 'CALIBRATING';
+console.log(`🎯 Readiness:    ${scoreStr} (${readiness.status.toUpperCase()})`);
+console.log(`   ├─ Sleep:     ${readiness.sleepScore !== undefined ? readiness.sleepScore + '/100' : 'N/A'}`);
+console.log(`   ├─ HRV:       ${readiness.hrvScore !== undefined ? readiness.hrvScore + '/100' : 'Calibrating (< 7 days)'}`);
+console.log(`   ├─ RHR:       ${readiness.rhrScore !== undefined ? readiness.rhrScore + '/100' : 'Calibrating (< 7 days)'}`);
+console.log(`   ├─ Load:      ${readiness.loadScore !== undefined ? readiness.loadScore + '/100' : 'N/A (insufficient history)'}`);
+if (readiness.proposals && readiness.proposals.length > 0) {
+    console.log(`   ├─ Proposals: ${readiness.proposals.map(p => `[${p.kind}] ${p.delta ?? ''} (${p.reason})`).join(' | ')}`);
+}
 console.log(`   └─ Note:      ${readiness.advisoryNote}`);
 console.log('─'.repeat(50) + '\n');

@@ -333,6 +333,33 @@ export function normalizeIngestPayload(body: any): DailyHealthMetrics {
 }
 
 /**
+ * Extracts asleep-only HRV from a Health Export Kit sleep session,
+ * filtering out awake spikes (like 250+ ms awakenings).
+ */
+function getAsleepHrv(session: any): number | undefined {
+  const hrvObj = session?.vitals?.hrvSDNN;
+  if (!hrvObj) return undefined;
+
+  if (hrvObj.byStage && typeof hrvObj.byStage === 'object') {
+    const asleepValues: number[] = [];
+    for (const [stage, val] of Object.entries(hrvObj.byStage)) {
+      if (stage.toLowerCase().startsWith('asleep') && typeof val === 'number') {
+        asleepValues.push(val);
+      }
+    }
+    if (asleepValues.length > 0) {
+      const avg = asleepValues.reduce((sum, v) => sum + v, 0) / asleepValues.length;
+      return Math.round(avg * 10) / 10;
+    }
+  }
+
+  if (typeof hrvObj.avg === 'number') {
+    return Math.round(hrvObj.avg * 10) / 10;
+  }
+  return undefined;
+}
+
+/**
  * Checks whether the incoming payload is from Health Export Kit.
  */
 export function isHealthExportKitPayload(body: any): boolean {
@@ -394,9 +421,10 @@ export function parseHealthExportKit(body: any): DailyHealthMetrics[] {
     const bodyFatPct = bodyComp?.bodyFat !== undefined ? Number(bodyComp.bodyFat) : undefined;
     const leanBodyMassLbs = bodyComp?.leanMass ? Math.round(Number(bodyComp.leanMass) * 2.20462262 * 10) / 10 : undefined;
 
-    // Vitals
+    // Vitals: Prioritize asleep-only HRV to prevent awake outliers from corrupting recovery data
+    const asleepHrv = getAsleepHrv(sleepSession);
+    let hrv = asleepHrv ?? (heart?.hrvAll !== undefined ? Math.round(Number(heart.hrvAll) * 10) / 10 : undefined);
     let restingHeartRate = heart?.restingHR !== undefined ? Math.round(Number(heart.restingHR)) : undefined;
-    let hrv = heart?.hrvAll !== undefined ? Math.round(Number(heart.hrvAll)) : undefined;
     let bloodOxygen = heart?.spo2All !== undefined ? Math.round(Number(heart.spo2All)) : undefined;
     let respiratoryRate = sleepSession?.vitals?.respiratoryRate?.avg !== undefined 
       ? Math.round(Number(sleepSession.vitals.respiratoryRate.avg) * 10) / 10 
@@ -405,9 +433,6 @@ export function parseHealthExportKit(body: any): DailyHealthMetrics[] {
     // Fallbacks from sleep session vitals if daily vitals weren't present
     if (restingHeartRate === undefined && sleepSession?.vitals?.heartRate?.avg !== undefined) {
       restingHeartRate = Math.round(Number(sleepSession.vitals.heartRate.avg));
-    }
-    if (hrv === undefined && sleepSession?.vitals?.hrvSDNN?.avg !== undefined) {
-      hrv = Math.round(Number(sleepSession.vitals.hrvSDNN.avg));
     }
     if (bloodOxygen === undefined && sleepSession?.vitals?.oxygenSaturation?.avg !== undefined) {
       bloodOxygen = Math.round(Number(sleepSession.vitals.oxygenSaturation.avg));
